@@ -6,7 +6,7 @@ use Midtrans\Config;
 use Midtrans\Snap;
 
 // Setup Midtrans Config
-Config::$serverKey = 'SB-Mid-server-Your_Server_Key';
+Config::$serverKey = 'SB-Mid-server-u3z85jkwtGLsy2AnYi5RYBJN';
 Config::$isProduction = false; // Sandbox mode
 Config::$isSanitized = true;
 Config::$is3ds = true;

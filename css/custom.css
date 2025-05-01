@@ -1,0 +1,30 @@
+/* Custom Styles */
+.hero-section {
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                url('../images/hero-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    height: 70vh;
+    margin-top: 76px; /* Untuk offset navbar fixed */
+}
+
+.object-fit-cover {
+    object-fit: cover;
+}
+
+.product-card {
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.product-card:hover {
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.btn-outline-dark {
+    border-width: 2px;
+}
+
+.footer {
+    background: #1a1a1a;
+}

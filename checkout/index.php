@@ -1,39 +1,63 @@
 <?php
 include '../includes/header.php';
-require_once '../vendor/autoload.php'; // Jika pakai composer
+require '../includes/config.php';
 
-use Midtrans\Config;
-use Midtrans\Snap;
-
-// Setup Midtrans Config
-Config::$serverKey = 'SB-Mid-server-u3z85jkwtGLsy2AnYi5RYBJN';
-Config::$isProduction = false; // Sandbox mode
-Config::$isSanitized = true;
-Config::$is3ds = true;
-
-// Ambil data dari cart
-$total = 0;
-$items = [];
-
-foreach($_SESSION['cart'] as $product_id => $qty) {
-  // Ambil info produk dari DB
-  $product = mysqli_fetch_assoc(mysqli_query($conn, 
-    "SELECT * FROM products WHERE id = $product_id"));
-  
-  $items[] = [
-    'id' => $product['id'],
-    'price' => $product['price'],
-    'quantity' => $qty,
-    'name' => $product['name']
-  ];
-  
-  $total += $product['price'] * $qty;
+// Pastikan user sudah login
+if(!isset($_SESSION['user_id'])) {
+    header("Location: ../users/login.php");
+    exit;
 }
 
-// Simpan order ke database
-$order_id = 'ORDER-' . time();
-mysqli_query($conn, 
-  "INSERT INTO orders (user_id, total, status) 
-   VALUES ({$_SESSION['user_id']}, $total, 'pending')");
-$order_id = mysqli_insert_id($conn); // Dapatkan ID order
+// Ambil data cart
+$user_id = $_SESSION['user_id'];
+$cart_items = mysqli_query($conn, 
+    "SELECT p.*, c.quantity 
+     FROM carts c 
+     JOIN products p ON c.product_id = p.id 
+     WHERE c.user_id = $user_id");
+
+// Hitung total
+$total = 0;
+while($item = mysqli_fetch_assoc($cart_items)) {
+    $total += $item['price'] * $item['quantity'];
+}
 ?>
+
+<div class="container mt-5">
+    <h2>Checkout</h2>
+    
+    <!-- Form Alamat Pengiriman -->
+    <form action="process_checkout.php" method="post">
+        <div class="mb-3">
+            <label>Alamat Lengkap</label>
+            <textarea name="shipping_address" class="form-control" required></textarea>
+        </div>
+        
+        <!-- Ringkasan Order -->
+        <div class="card mb-4 shadow">
+            <div class="card-body">
+                <h5 class="card-title">Ringkasan Pesanan</h5>
+                <ul class="list-group">
+                    <?php 
+                    mysqli_data_seek($cart_items, 0);
+                    while($item = mysqli_fetch_assoc($cart_items)): ?>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><?= $item['name'] ?> (<?= $item['quantity'] ?>x)</span>
+                        <span>Rp <?= number_format($item['price'] * $item['quantity'], 0, ',', '.') ?></span>
+                    </li>
+                    <?php endwhile; ?>
+                </ul>
+                <hr>
+                <h4 class="text-end text-danger">
+                    Total: Rp <?= number_format($total, 0, ',', '.') ?>
+                </h4>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-lg w-100">
+            Lanjut ke Pembayaran
+        </button>
+    </form>
+</div>
+
+<?php include '../includes/footer.php'; ?>

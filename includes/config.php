@@ -1,6 +1,6 @@
 <?php
 // Tambahkan di bagian atas config.php
-session_start();
+// session_start();
 
 // Security headers
 header("X-Frame-Options: DENY");

@@ -27,7 +27,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="/">
+            <a class="navbar-brand" href="../hoodie_shop/index.php">
                 <i class="fas fa-tshirt me-2"></i>
                 HoodieZone
             </a>

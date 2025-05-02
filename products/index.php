@@ -40,11 +40,11 @@ if ($page < 1 || $page > $total_pages) {
                     <div class="card h-100 shadow-sm product-card">
                         <!-- Di bagian card image, perbaiki kode menjadi: -->
                         <div class="card-img-top position-relative">
-                            <img src="images/products/<?= htmlspecialchars($row['image']) ?>"
+                            <img src="/hoodie_shop/images/products/<?= htmlspecialchars($row['image']) ?>"
                                 class="img-fluid object-fit-cover"
                                 style="height: 300px"
                                 alt="<?= htmlspecialchars($row['name']) ?>">
-                            <div class="card-badge">NEW</div>
+                            <div class="card-badge"></div>
                         </div>
                         <div class="card-body">
                             <h5 class="card-title fw-bold"><?= htmlspecialchars($row['name']) ?></h5>
@@ -141,5 +141,11 @@ include '../includes/footer.php';
 .object-fit-cover {
     object-fit: cover;
     object-position: center top;
+}
+
+.card-img-top {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 </style>

@@ -1,5 +1,6 @@
 <?php
 // Tambahkan di bagian atas config.php
+// define('BASE_URL', 'http://localhost/hoodie_shop');
 // session_start();
 
 // Security headers

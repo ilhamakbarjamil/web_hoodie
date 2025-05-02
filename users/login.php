@@ -30,7 +30,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['logged_in'] = true;
                 
                 // Redirect ke halaman utama
-                header("Location: ../index.php");
+                header("Location: ../index_logined.php");
                 exit;
             } else {
                 $error = "Password salah!";

@@ -1,3 +1,4 @@
+
 <?php
 include '../includes/header.php';
 require '../includes/config.php';
@@ -26,7 +27,7 @@ $product = mysqli_fetch_assoc($result);
     <div class="row g-5">
         <div class="col-md-6">
             <div class="card shadow-sm">
-                <img src="../images/products/hoodie_1.jpg?= htmlspecialchars($product['image']) ?>" 
+                <img src="../images/products/<?= htmlspecialchars($product['image']) ?>" 
                      class="card-img-top" 
                      alt="<?= htmlspecialchars($product['name']) ?>"
                      style="max-height: 600px; object-fit: contain">
@@ -81,6 +82,7 @@ $product = mysqli_fetch_assoc($result);
                 </ul>
             </div>
         </div>
+        
     </div>
 </div>
 
@@ -89,15 +91,3 @@ mysqli_stmt_close($stmt);
 mysqli_close($conn);
 include '../includes/footer.php'; 
 ?>
-
-<style>
-.product-details li {
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.badge.bg-success {
-    font-size: 1rem;
-    padding: 8px 15px;
-}
-</style>

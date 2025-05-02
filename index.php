@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 
 require __DIR__ . '/includes/config.php';
 
+// Query untuk mendapatkan 4 produk terbaru
 $sql = "SELECT * FROM products ORDER BY created_at DESC LIMIT 4";
 $result = mysqli_query($conn, $sql);
 
@@ -16,7 +17,7 @@ $product_count = mysqli_num_rows($result);
 
 <?php include 'includes/header.php'; ?>
 
-<!-- Hero Section dengan Gradient dan Animasi -->
+<!-- Hero Section -->
 <section class="hero-section d-flex align-items-center text-white">
     <div class="container text-center position-relative z-2">
         <div class="hero-content animate__animated animate__fadeInUp">
@@ -31,7 +32,7 @@ $product_count = mysqli_num_rows($result);
     <div class="hero-overlay"></div>
 </section>
 
-<!-- Featured Products dengan Hover Effect -->
+<!-- Produk Unggulan -->
 <section class="py-5 bg-light">
     <div class="container">
         <h2 class="text-center mb-5 fw-bold display-5">Produk Terbaru</h2>
@@ -42,7 +43,7 @@ $product_count = mysqli_num_rows($result);
                 <div class="col">
                     <div class="card product-card h-100 border-0 shadow-hover">
                         <div class="card-img-top position-relative">
-                            <img src="images/products/ htmlspecialchars($row['image']) ?>" 
+                            <img src="images/products/<?= htmlspecialchars($row['image']) ?>" 
                                  class="img-fluid object-fit-cover" 
                                  style="height: 300px"
                                  alt="<?= htmlspecialchars($row['name']) ?>">
@@ -62,7 +63,7 @@ $product_count = mysqli_num_rows($result);
                             </div>
                         </div>
                         <div class="card-footer bg-transparent border-0 pt-0">
-                            <a href="/products/view.php?id=<?= $row['id'] ?>" 
+                            <a href="products/view.php?id=<?= $row['id'] ?>" 
                                class="btn btn-dark w-100 rounded-pill">
                                 <i class="fas fa-cart-plus me-2"></i>Detail Produk
                             </a>
@@ -79,30 +80,13 @@ $product_count = mysqli_num_rows($result);
     </div>
 </section>
 
-<!-- CTA Section
-<section class="py-5 bg-dark text-white">
-    <div class="container text-center">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <h2 class="mb-4">Bergabunglah dengan Komunitas Kami</h2>
-                <p class="lead mb-4">Dapatkan update terbaru dan penawaran eksklusif</p>
-                <form class="d-flex gap-2 justify-content-center">
-                    <input type="email" class="form-control w-50" placeholder="Masukkan email Anda">
-                    <button class="btn btn-outline-light rounded-pill px-4">
-                        Subscribe
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</section> -->
-
 <?php 
 mysqli_close($conn);
 include 'includes/footer.php'; 
 ?>
 
 <style>
+/* Custom CSS */
 .hero-section {
     background: linear-gradient(45deg, #2d3436, #636e72);
     height: 80vh;
@@ -121,12 +105,12 @@ include 'includes/footer.php';
     z-index: 1;
 }
 
-.shadow-hover {
+.product-card {
     transition: all 0.3s ease;
     border: 1px solid rgba(0,0,0,0.1);
 }
 
-.shadow-hover:hover {
+.product-card:hover {
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     transform: translateY(-5px);
 }
@@ -145,5 +129,14 @@ include 'includes/footer.php';
 .object-fit-cover {
     object-fit: cover;
     object-position: center;
+}
+
+.btn-dark {
+    background: #2d3436;
+    transition: all 0.3s;
+}
+
+.btn-dark:hover {
+    background: #1a1e1f;
 }
 </style>

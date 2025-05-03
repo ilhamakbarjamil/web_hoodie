@@ -1,6 +1,12 @@
 <?php
-include '../includes/header.php';
-require '../includes/config.php';
+  session_start();
+  require '../includes/config.php';
+  // Gunakan header yang sesuai berdasarkan status login
+  if(isset($_SESSION['user_id'])) {
+      include '../includes/header_logined.php';
+  } else {
+      include '../includes/header.php';
+  }
 
 // Pagination setup
 $per_page = 8;

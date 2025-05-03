@@ -5,162 +5,119 @@ require '../includes/config.php';
 $error = null;
 
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Sanitasi input
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    // Sanitasi dan validasi input
+    $email = mysqli_real_escape_string($conn, trim($_POST['email']));
     $password = $_POST['password'];
 
-    // Validasi input
+    // Validasi form
     if(empty($email) || empty($password)) {
         $error = "Harap isi semua field!";
+    } elseif(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Format email tidak valid!";
     } else {
         // Cari user di database
-        $stmt = mysqli_prepare($conn, "SELECT * FROM users WHERE email = ?");
+        $stmt = mysqli_prepare($conn, "SELECT id, email, password FROM users WHERE email = ?");
         mysqli_stmt_bind_param($stmt, "s", $email);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         
-        if(mysqli_num_rows($result) > 0) {
+        if(mysqli_num_rows($result) === 1) {
             $user = mysqli_fetch_assoc($result);
             
             // Verifikasi password
             if(password_verify($password, $user['password'])) {
-                // Set session
+                // Regenerate session ID untuk prevent session fixation
+                session_regenerate_id(true);
+                
+                // Set session variables
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['logged_in'] = true;
                 
                 // Redirect ke halaman utama
                 header("Location: ../index_logined.php");
-                exit;
+                exit();
             } else {
-                $error = "Password salah!";
+                $error = "Kombinasi email/password salah!";
             }
         } else {
-            $error = "Email tidak terdaftar!";
+            $error = "Akun tidak ditemukan!";
         }
     }
 }
 ?>
 
-<?php include '../includes/header.php'; ?>
-
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow-lg border-0">
-                <div class="card-body p-5">
-                    <!-- Logo Brand -->
-                    <div class="text-center mb-4">
-                        <i class="fas fa-tshirt fa-3x text-primary"></i>
-                        <h2 class="mt-3 mb-0">Masuk ke Akun Anda</h2>
-                        <p class="text-muted">Silakan login untuk melanjutkan</p>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card shadow-lg">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-sign-in-alt"></i> Login Sistem</h4>
                     </div>
-
-                    <?php if($error): ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <?= $error ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                    <?php endif; ?>
-
-                    <form method="post">
-                        <!-- Email Input -->
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-envelope"></i>
-                                </span>
-                                <input type="email" 
-                                       name="email" 
-                                       class="form-control form-control-lg"
-                                       placeholder="contoh@email.com"
-                                       required>
-                            </div>
+                    <div class="card-body">
+                        <?php if($error): ?>
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <?= $error ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
+                        <?php endif; ?>
 
-                        <!-- Password Input -->
-                        <div class="mb-4">
-                            <label class="form-label">Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-lock"></i>
-                                </span>
-                                <input type="password" 
-                                       name="password" 
-                                       class="form-control form-control-lg"
-                                       placeholder="Masukkan password"
-                                       required>
+                        <form method="POST" novalidate>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" 
+                                           class="form-control" 
+                                           id="email"
+                                           name="email"
+                                           required
+                                           placeholder="contoh@email.com">
+                                </div>
                             </div>
-                            <div class="text-end mt-2">
-                                <a href="forgot_password.php" class="text-decoration-none small">
+
+                            <div class="mb-4">
+                                <label for="password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" 
+                                           class="form-control" 
+                                           id="password"
+                                           name="password"
+                                           required
+                                           placeholder="Masukkan password">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-sign-in-alt me-2"></i>Masuk
+                            </button>
+
+                            <div class="text-center mt-3">
+                                <a href="forgot_password.php" class="text-decoration-none">
                                     Lupa Password?
                                 </a>
                             </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <button type="submit" 
-                                class="btn btn-primary btn-lg w-100 mb-3">
-                            <i class="fas fa-sign-in-alt me-2"></i>Masuk
-                        </button>
-
-                        <!-- Register Link -->
-                        <div class="text-center">
-                            <p class="text-muted">Belum punya akun? 
-                                <a href="register.php" class="text-decoration-none">
-                                    Daftar disini
-                                </a>
-                            </p>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
+                    <div class="card-footer text-center">
+                        Belum punya akun? <a href="register.php" class="text-decoration-none">Daftar disini</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<style>
-body {
-    background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
-    min-height: 100vh;
-}
-
-.card {
-    border-radius: 20px;
-    overflow: hidden;
-    transition: transform 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-}
-
-.input-group-text {
-    background: white;
-    border-right: 0;
-    min-width: 45px;
-}
-
-.form-control {
-    border-left: 0;
-}
-
-.form-control:focus {
-    box-shadow: none;
-    border-color: #ced4da;
-}
-
-.btn-primary {
-    background: #6366f1;
-    border: none;
-    padding: 12px;
-    transition: all 0.3s;
-}
-
-.btn-primary:hover {
-    background: #4f46e5;
-}
-</style>
-
-<?php include '../includes/footer.php'; ?>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

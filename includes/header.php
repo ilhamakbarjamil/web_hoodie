@@ -27,7 +27,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="../hoodie_shop/index.php">
+            <a class="navbar-brand" href="../index.php">
                 <i class="fas fa-tshirt me-2"></i>
                 HoodieZone
             </a>
@@ -37,16 +37,19 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="products/index.php"><i class="fas fa-store me-1"></i>Shop</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="cart/index.php">
+                        <!-- <a class="nav-link" href="cart/index.php">
                             <i class="fas fa-shopping-cart me-1"></i>
                             Cart 
                             <?php if(isset($_SESSION['cart']) && count($_SESSION['cart']) > 0): ?>
                                 <span class="badge bg-danger"><?= array_sum($_SESSION['cart']) ?></span>
-                            <?php endif; ?>
+                            <?php endif; ?> -->
                         </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/hoodie_shop/users/login.php"><i class="fas fa-sign-in-alt me-1"></i>Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/hoodie_shop/users/register.php"><i class="fas fa-user-plus me-1"></i>Register</a>
                     </li>
                 </ul>
             </div>

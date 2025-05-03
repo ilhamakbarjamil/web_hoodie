@@ -3,7 +3,7 @@ session_start();
 require_once '../includes/config.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../users/login.php");
+    header("Location: /users/login.php");
     exit();
 }
 
@@ -22,8 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['cart'][$product_id] = $quantity;
     }
     
-    // Perbaikan redirect URL
-    header("Location: ../cart/index.php");
+    header("Location: /cart");
     exit();
 }
 ?>

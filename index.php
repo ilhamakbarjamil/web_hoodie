@@ -23,7 +23,7 @@ $product_count = mysqli_num_rows($result);
         <div class="hero-content animate__animated animate__fadeInUp">
             <h1 class="display-3 fw-bold mb-4">Temukan Hoodie Eksklusif</h1>
             <p class="lead mb-4 fs-5">Koleksi terbaru dengan bahan premium dan desain streetwear kekinian</p>
-            <a href="products/" class="btn btn-danger btn-lg px-5 rounded-pill">
+            <a href="../hoodie_shop/products/index.php" class="btn btn-danger btn-lg px-5 rounded-pill">
                 <i class="fas fa-shopping-bag me-2"></i>
                 Jelajahi Koleksi
             </a>

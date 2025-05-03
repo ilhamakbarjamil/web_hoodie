@@ -109,7 +109,7 @@ if (session_status() === PHP_SESSION_NONE) {
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item py-2" href="cart/index.php">
+                                <a class="dropdown-item py-2" href="/hoodie_shop/cart/index.php">
                                     <i class="fas fa-shopping-cart me-2 text-primary"></i>
                                     Keranjang
                                     <?php if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0): ?>

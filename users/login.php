@@ -44,6 +44,21 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $error = "Akun tidak ditemukan!";
         }
     }
+
+    $cart_stmt = mysqli_prepare($conn, "SELECT product_id, quantity FROM cart WHERE user_id = ?");
+mysqli_stmt_bind_param($cart_stmt, "i", $user['id']);
+mysqli_stmt_execute($cart_stmt);
+$cart_result = mysqli_stmt_get_result($cart_stmt);
+
+// Initialize cart session
+$_SESSION['cart'] = [];
+
+// Populate cart session with items from database
+while ($cart_item = mysqli_fetch_assoc($cart_result)) {
+    $_SESSION['cart'][$cart_item['product_id']] = $cart_item['quantity'];
+}
+
+mysqli_stmt_close($cart_stmt);
 }
 ?>
 

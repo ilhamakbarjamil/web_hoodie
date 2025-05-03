@@ -1,99 +1,133 @@
 <?php
-include '../includes/header.php';
-require '../includes/config.php';
+session_start();
+require_once '../includes/config.php';
 
-// Pastikan user sudah login
-if(!isset($_SESSION['user_id'])) {
-    header("Location: ../users/login.php");
-    exit;
+// Gunakan header yang sesuai berdasarkan status login
+if(isset($_SESSION['user_id'])) {
+    include '../includes/header_logined.php';
+} else {
+    include '../includes/header.php';
+    // Redirect to login if not logged in
+    header("Location: /hoodie_shop/users/login.php");
+    exit();
 }
 
-// Ambil data cart dari database
 $user_id = $_SESSION['user_id'];
-$sql = "SELECT p.*, c.quantity 
-        FROM carts c 
-        JOIN products p ON c.product_id = p.id 
-        WHERE c.user_id = $user_id";
-$result = mysqli_query($conn, $sql);
+
+// Load cart items from database
+$stmt = mysqli_prepare($conn, "
+    SELECT c.id, c.product_id, c.quantity, p.name, p.price, p.image 
+    FROM cart c
+    JOIN products p ON c.product_id = p.id
+    WHERE c.user_id = ?
+    ORDER BY c.created_at DESC
+");
+mysqli_stmt_bind_param($stmt, "i", $user_id);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+
+// Sync session cart with database (for cart badge in header)
+$_SESSION['cart'] = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $_SESSION['cart'][$row['product_id']] = $row['quantity'];
+}
+
+// Reset result pointer
+mysqli_data_seek($result, 0);
+
+// Check if cart is empty
+$cart_empty = mysqli_num_rows($result) == 0;
 ?>
 
-<div class="container mt-5">
-    <h2 class="mb-4">Your Cart</h2>
+<div class="container mt-5 pt-4">
+    <h2 class="mb-4">Keranjang Belanja</h2>
     
-    <?php if(mysqli_num_rows($result) > 0): ?>
-    <div class="row">
-        <div class="col-md-8">
-            <?php while($row = mysqli_fetch_assoc($result)): ?>
-            <div class="card mb-3 shadow-sm">
-                <div class="row g-0">
-                    <div class="col-md-4">
-                        <img src="../images/<?= $row['image'] ?>" 
-                             class="img-fluid rounded-start" 
-                             style="height: 200px; object-fit: cover">
-                    </div>
-                    <div class="col-md-8">
-                        <div class="card-body">
-                            <h5 class="card-title"><?= $row['name'] ?></h5>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <form action="update_cart.php" method="post" class="d-inline">
-                                        <input type="number" name="quantity" 
-                                               value="<?= $row['quantity'] ?>" 
-                                               min="1" 
-                                               class="form-control" 
-                                               style="width: 80px">
-                                        <input type="hidden" name="product_id" 
-                                               value="<?= $row['id'] ?>">
-                                        <button type="submit" 
-                                                class="btn btn-sm btn-outline-primary mt-2">
-                                            Update
+    <?php if($cart_empty): ?>
+        <div class="alert alert-info">
+            <i class="fas fa-shopping-cart me-2"></i>
+            Keranjang belanja Anda masih kosong.
+            <a href="/hoodie_shop/products/index.php" class="alert-link">Belanja sekarang</a>.
+        </div>
+    <?php else: ?>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Produk</th>
+                                <th>Harga</th>
+                                <th>Jumlah</th>
+                                <th>Subtotal</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $total = 0;
+                            while ($item = mysqli_fetch_assoc($result)): 
+                                $subtotal = $item['price'] * $item['quantity'];
+                                $total += $subtotal;
+                            ?>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="/hoodie_shop/images/products/<?= htmlspecialchars($item['image']) ?>" 
+                                             alt="<?= htmlspecialchars($item['name']) ?>" 
+                                             class="img-thumbnail me-3" 
+                                             style="width: 80px; height: 80px; object-fit: cover;">
+                                        <div>
+                                            <h6 class="mb-0"><?= htmlspecialchars($item['name']) ?></h6>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Rp <?= number_format($item['price'], 0, ',', '.') ?></td>
+                                <td>
+                                    <form action="/hoodie_shop/cart/update_cart.php" method="post" class="d-flex align-items-center">
+                                        <input type="hidden" name="cart_id" value="<?= $item['id'] ?>">
+                                        <input type="hidden" name="product_id" value="<?= $item['product_id'] ?>">
+                                        <input type="number" name="quantity" value="<?= $item['quantity'] ?>" min="1" class="form-control form-control-sm" style="width: 70px;">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary ms-2">
+                                            <i class="fas fa-sync-alt"></i>
                                         </button>
                                     </form>
-                                    <a href="remove_from_cart.php?id=<?= $row['id'] ?>" 
-                                       class="btn btn-sm btn-outline-danger mt-2">
-                                        Remove
-                                    </a>
-                                </div>
-                                <h5 class="text-danger">
-                                    Rp <?= number_format($row['price'] * $row['quantity'], 0, ',', '.') ?>
-                                </h5>
-                            </div>
-                        </div>
-                    </div>
+                                </td>
+                                <td>Rp <?= number_format($subtotal, 0, ',', '.') ?></td>
+                                <td>
+                                    <form action="/hoodie_shop/cart/remove_item.php" method="post">
+                                        <input type="hidden" name="cart_id" value="<?= $item['id'] ?>">
+                                        <input type="hidden" name="product_id" value="<?= $item['product_id'] ?>">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash-alt"></i> Hapus
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Total:</td>
+                                <td class="fw-bold">Rp <?= number_format($total, 0, ',', '.') ?></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
-            <?php endwhile; ?>
-        </div>
-        
-        <!-- Order Summary -->
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Order Summary</h5>
-                    <?php
-                    mysqli_data_seek($result, 0);
-                    $total = 0;
-                    while($row = mysqli_fetch_assoc($result)) {
-                        $total += $row['price'] * $row['quantity'];
-                    }
-                    ?>
-                    <div class="d-flex justify-content-between">
-                        <span>Total:</span>
-                        <h4 class="text-danger">Rp <?= number_format($total, 0, ',', '.') ?></h4>
-                    </div>
-                    <a href="../checkout/" class="btn btn-danger w-100 mt-3">Checkout Now</a>
-                </div>
+            <div class="card-footer d-flex justify-content-between">
+                <a href="/hoodie_shop/products/index.php" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Lanjutkan Belanja
+                </a>
+                <a href="/hoodie_shop/checkout/index.php" class="btn btn-danger">
+                    <i class="fas fa-shopping-bag me-2"></i>Checkout
+                </a>
             </div>
         </div>
-    </div>
-    <?php else: ?>
-    <div class="alert alert-info">
-        Your cart is empty. <a href="../products/">Start shopping</a>
-    </div>
     <?php endif; ?>
 </div>
 
 <?php 
-mysqli_close($conn);
+mysqli_stmt_close($stmt);
 include '../includes/footer.php'; 
 ?>

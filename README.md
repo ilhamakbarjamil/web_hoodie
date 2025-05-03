@@ -34,3 +34,8 @@ Sebuah platform e-commerce sederhana untuk penjualan hoodie, dibangun dengan PHP
    ```bash
    git clone https://github.com/username/hoodie_shop.git
    cd hoodie_shop
+
+2. **Download Comoser**
+   ```bash
+   composer init --no-interaction
+   composer require midtrans/midtrans-php

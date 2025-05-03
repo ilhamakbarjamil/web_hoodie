@@ -39,3 +39,6 @@ Sebuah platform e-commerce sederhana untuk penjualan hoodie, dibangun dengan PHP
    ```bash
    composer init --no-interaction
    composer require midtrans/midtrans-php
+
+3. **Masukkan Key Midtrans**
+   Masukkan client-key dan server-key di folder checkout

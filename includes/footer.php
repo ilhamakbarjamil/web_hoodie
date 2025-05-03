@@ -2,10 +2,13 @@
     <footer class="bg-dark text-white mt-5">
         <div class="container py-5">
             <div class="row g-4">
-                <div class="col-md-4">
+            <div class="col-md-4">
+                    <h5 class="mb-3">created by ilham akbar jamil</h5>
+                </div>
+                <!-- <div class="col-md-4">
                     <h5 class="mb-3">HoodieZone</h5>
                     <p class="text-secondary">Toko hoodie premium dengan kualitas terbaik di Indonesia</p>
-                </div>
+                </div> -->
                 <div class="col-md-4">
                     <h5 class="mb-3">Kontak Kami</h5>
                     <ul class="list-unstyled">
@@ -23,6 +26,7 @@
                         <a href="#" class="text-white"><i class="fab fa-tiktok fs-4"></i></a>
                     </div>
                 </div>
+                
             </div>
         </div>
     </footer>

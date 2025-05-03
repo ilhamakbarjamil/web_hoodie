@@ -77,8 +77,8 @@ if(count($items) == 0) {
                                 <option value="regular">Regular (Rp 15.000)</option>
                                 <option value="express">Express (Rp 30.000)</option>
                             </select>
-                        </div>
-                        
+
+                        </div>                        
                         <div class="mb-3">
                             <label for="payment" class="form-label">Metode Pembayaran</label>
                             <select class="form-select" id="payment" name="payment_method" required>
@@ -88,7 +88,8 @@ if(count($items) == 0) {
                         </div>
                         
                         <input type="hidden" name="total" value="<?= $total ?>">
-                        <button type="submit" class="btn btn-primary btn-lg w-100">Lanjutkan ke Pembayaran</button>
+                        <!-- Tambahkan input hidden untuk shipping cost -->
+                        <input type="hidden" name="shipping_cost" id="shipping_cost" value="0">                        <button type="submit" class="btn btn-primary btn-lg w-100">Lanjutkan ke Pembayaran</button>
                     </form>
                 </div>
             </div>
@@ -137,30 +138,85 @@ if(count($items) == 0) {
 </div>
 
 <script>
+// document.addEventListener('DOMContentLoaded', function() {
+//     const shippingSelect = document.getElementById('shipping');
+//     const shippingCostElement = document.querySelector('.shipping-cost span:last-child');
+//     const totalElement = document.querySelector('.total-amount span:last-child');
+//     const totalInput = document.querySelector('input[name="total"]');
+    
+//     let subtotal = <?= $total ?>;
+    
+//     // shippingSelect.addEventListener('change', function() {
+//     //     let shippingCost = 0;
+        
+//     //     if (this.value === 'regular') {
+//     //         shippingCost = 15000;
+//     //     } else if (this.value === 'express') {
+//     //         shippingCost = 30000;
+//     //     }
+        
+//     //     shippingCostElement.textContent = 'Rp ' + shippingCost.toLocaleString('id-ID');
+        
+//     //     const total = subtotal + shippingCost;
+//     //     totalElement.textContent = 'Rp ' + total.toLocaleString('id-ID');
+//     //     totalInput.value = total;
+//     // });
+
+//     shippingSelect.addEventListener('change', function() {
+//     let shippingCost = 0;
+    
+//     if (this.value === 'regular') {
+//         shippingCost = 15000;
+//     } else if (this.value === 'express') {
+//         shippingCost = 30000;
+//     }
+    
+//     shippingCostElement.textContent = 'Rp ' + shippingCost.toLocaleString('id-ID');
+    
+//     const total = subtotal + shippingCost;
+//     totalElement.textContent = 'Rp ' + total.toLocaleString('id-ID');
+//     totalInput.value = total;
+// });
+
+// });
+
 document.addEventListener('DOMContentLoaded', function() {
     const shippingSelect = document.getElementById('shipping');
     const shippingCostElement = document.querySelector('.shipping-cost span:last-child');
     const totalElement = document.querySelector('.total-amount span:last-child');
     const totalInput = document.querySelector('input[name="total"]');
+    const shippingCostInput = document.getElementById('shipping_cost');
     
     let subtotal = <?= $total ?>;
     
-    shippingSelect.addEventListener('change', function() {
-        let shippingCost = 0;
-        
-        if (this.value === 'regular') {
-            shippingCost = 15000;
-        } else if (this.value === 'express') {
-            shippingCost = 30000;
-        }
-        
-        shippingCostElement.textContent = 'Rp ' + shippingCost.toLocaleString('id-ID');
-        
-        const total = subtotal + shippingCost;
-        totalElement.textContent = 'Rp ' + total.toLocaleString('id-ID');
-        totalInput.value = total;
-    });
+    // Perbaiki JavaScript di checkout/index.php
+shippingSelect.addEventListener('change', function() {
+    let shippingCost = 0;
+    
+    if (this.value === 'regular') {
+        shippingCost = 15000;
+    } else if (this.value === 'express') {
+        shippingCost = 30000;
+    }
+    
+    // Update shipping cost display
+    shippingCostElement.textContent = 'Rp ' + shippingCost.toLocaleString('id-ID');
+    
+    // Calculate and update total
+    const total = subtotal + shippingCost;
+    totalElement.textContent = 'Rp ' + total.toLocaleString('id-ID');
+    totalInput.value = total;
+    
+    // Tambahkan input hidden untuk shipping cost
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'shipping_cost';
+    hiddenInput.value = shippingCost;
+    document.getElementById('checkout-form').appendChild(hiddenInput);
 });
+
+});
+
 </script>
 
 <?php include '../includes/footer.php'; ?>

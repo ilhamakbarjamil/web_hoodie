@@ -1,7 +1,17 @@
 <?php
 session_start();
 require_once '../includes/config.php';
-require '../vendor/autoload.php';
+require_once '../vendor/autoload.php';
+
+// Import Midtrans classes
+use Midtrans\Config;
+use Midtrans\Snap;
+
+// Configure Midtrans
+Config::$serverKey = 'Server Key'; // Replace with your actual sandbox server key
+Config::$isProduction = false;
+Config::$isSanitized = true;
+Config::$is3ds = true;
 
 // Cek login
 if(!isset($_SESSION['user_id'])) {
@@ -39,22 +49,61 @@ if($order['status'] != 'pending') {
 }
 
 // Ambil items dari order
-$items_query = mysqli_prepare($conn, "SELECT * FROM order_items WHERE order_id = ?");
+$items_query = mysqli_prepare($conn, "SELECT oi.*, p.name as product_name 
+                                     FROM order_items oi 
+                                     JOIN products p ON oi.product_id = p.id 
+                                     WHERE oi.order_id = ?");
 mysqli_stmt_bind_param($items_query, "i", $order_id);
 mysqli_stmt_execute($items_query);
 $items_result = mysqli_stmt_get_result($items_query);
 
 $items = [];
+$midtrans_items = [];
 while($item = mysqli_fetch_assoc($items_result)) {
     $items[] = $item;
+    
+    // Prepare items for Midtrans
+    $midtrans_items[] = [
+        'id' => $item['product_id'],
+        'price' => $item['price'],
+        'quantity' => $item['quantity'],
+        'name' => $item['product_name']
+    ];
 }
 
-// Cek apakah payment token sudah ada
-if(empty($order['payment_token'])) {
-    die("Token pembayaran tidak ditemukan");
-}
+// Get user details for Midtrans
+$user_query = mysqli_prepare($conn, "SELECT email, phone, address FROM users WHERE id = ?");
+mysqli_stmt_bind_param($user_query, "i", $user_id);
+mysqli_stmt_execute($user_query);
+$user_result = mysqli_stmt_get_result($user_query);
+$user = mysqli_fetch_assoc($user_result);
 
-$snapToken = $order['payment_token'];
+// Always generate a new token to ensure we have a valid one
+$transaction = [
+    'transaction_details' => [
+        'order_id' => 'HOODIE-' . $order_id . '-' . time(), // Add timestamp to make it unique
+        'gross_amount' => (int)$order['total']
+    ],
+    'customer_details' => [
+        'first_name' => 'Customer',
+        'email' => $user['email'] ?? 'customer@example.com',
+        'phone' => $user['phone'] ?? '08123456789'
+    ],
+    'item_details' => $midtrans_items
+];
+
+try {
+    // Generate new Snap Token
+    $snapToken = Snap::getSnapToken($transaction);
+    
+    // Update order with new snap token
+    $update_token = mysqli_prepare($conn, "UPDATE orders SET payment_token = ? WHERE id = ?");
+    mysqli_stmt_bind_param($update_token, "si", $snapToken, $order_id);
+    mysqli_stmt_execute($update_token);
+    
+} catch (\Exception $e) {
+    die("Error generating payment token: " . $e->getMessage() . ". Please check your Midtrans configuration.");
+}
 ?>
 
 <div class="container my-5">
@@ -74,7 +123,7 @@ $snapToken = $order['payment_token'];
                         <table class="table table-bordered">
                             <tr>
                                 <th>Total Pembayaran</th>
-                                <td>Rp <?= number_format($order['total'], 0, ',', '.') ?></td>
+                                <td>Rp <?= number_format($order['total'] ?? 0, 0, ',', '.') ?></td>
                             </tr>
                             <tr>
                                 <th>Status</th>
@@ -82,13 +131,12 @@ $snapToken = $order['payment_token'];
                             </tr>
                             <tr>
                                 <th>Metode Pengiriman</th>
-                                <td><?= ucfirst($order['shipping_method']) ?></td>
+                                <td><?= !empty($order['shipping_method']) ? ucfirst($order['shipping_method']) : 'Tidak tersedia' ?></td>
                             </tr>
                             <tr>
                                 <th>Alamat Pengiriman</th>
-                                <td><?= htmlspecialchars($order['address']) ?></td>
-                            </tr>
-                        </table>
+                                <td><?= !empty($order['address']) ? htmlspecialchars($order['address']) : 'Tidak tersedia' ?></td>
+                            </tr>                        </table>
                     </div>
                     
                     <div class="items-list mb-4">
@@ -125,7 +173,7 @@ $snapToken = $order['payment_token'];
 </div>
 
 <!-- Midtrans JS -->
-<script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="SB-Mid-client-YourClientKey"></script>
+<script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Client Key"></script>
 <script>
     document.getElementById('pay-button').onclick = function() {
         // Trigger snap popup

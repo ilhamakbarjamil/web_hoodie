@@ -16,6 +16,17 @@ if(!isset($_GET['order_id']) || !is_numeric($_GET['order_id'])) {
     die("ID order tidak valid");
 }
 
+if(isset($_SESSION['payment_message'])): ?>
+    <div class="alert alert-<?= $_SESSION['payment_alert_class'] ?> mb-4">
+        <?= $_SESSION['payment_message'] ?>
+    </div>
+    <?php 
+    // Clear the message after displaying
+    unset($_SESSION['payment_message']);
+    unset($_SESSION['payment_alert_class']);
+    ?>
+<?php endif; 
+
 $order_id = (int)$_GET['order_id'];
 $user_id = $_SESSION['user_id'];
 

@@ -21,7 +21,7 @@ $user_id = $_SESSION['user_id'];
 
 // Ambil data order
 $order_query = mysqli_prepare($conn, "
-    SELECT o.*, u.email, u.address, u.phone 
+    SELECT o.*, u.email, u.address, u.phone, u.nama 
     FROM orders o
     JOIN users u ON o.user_id = u.id
     WHERE o.id = ? AND o.user_id = ?
@@ -136,7 +136,7 @@ $status_labels = [
                     <h5 class="mb-0">Informasi Pengiriman</h5>
                 </div>
                 <div class="card-body">
-                    <p class="mb-1"><strong>Nama:</strong> <?= htmlspecialchars($order['name'] ?? 'N/A') ?></p>
+                    <p class="mb-1"><strong>Nama:</strong> <?= htmlspecialchars($order['nama'] ?? 'N/A') ?></p>
                     <p class="mb-1"><strong>Email:</strong> <?= htmlspecialchars($order['email']) ?></p>
                     <p class="mb-1"><strong>Telepon:</strong> <?= htmlspecialchars($order['phone'] ?? 'N/A') ?></p>
                     <p class="mb-1"><strong>Alamat:</strong> <?= nl2br(htmlspecialchars($order['address'] ?? 'N/A')) ?></p>

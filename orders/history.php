@@ -1,6 +1,13 @@
 <?php
 session_start();
 require_once '../includes/config.php';
+require_once '../vendor/autoload.php'; // Add Composer autoload
+
+// Configure Midtrans
+\Midtrans\Config::$serverKey = 'YOUR_MIDTRANS_SERVER_KEY'; // Replace with your sandbox server key
+\Midtrans\Config::$isProduction = false; // Set false for sandbox mode
+\Midtrans\Config::$isSanitized = true;
+\Midtrans\Config::$is3ds = true;
 
 // Cek login
 if(!isset($_SESSION['user_id'])) {
@@ -15,7 +22,7 @@ $user_id = $_SESSION['user_id'];
 
 // Ambil semua order milik user - removed order_number from the query
 $orders_query = mysqli_prepare($conn, "
-    SELECT o.id, o.total, o.status, o.created_at, o.payment_method 
+    SELECT o.id, o.total, o.status, o.created_at, o.payment_method, o.payment_token 
     FROM orders o
     WHERE o.user_id = ?
     ORDER BY o.created_at DESC
@@ -76,9 +83,18 @@ $status_labels = [
                                             <i class="fas fa-eye"></i> Detail
                                         </a>
                                         <?php if($order['status'] == 'pending'): ?>
-                                            <a href="/hoodie_shop/checkout/payment.php?order_id=<?= $order['id'] ?>" class="btn btn-sm btn-success">
-                                                <i class="fas fa-credit-card"></i> Bayar
-                                            </a>
+                                            <?php if(!empty($order['payment_token'])): ?>
+                                                <button 
+                                                    class="btn btn-sm btn-success pay-button" 
+                                                    data-token="<?= $order['payment_token'] ?>"
+                                                    data-order-id="<?= $order['id'] ?>">
+                                                    <i class="fas fa-credit-card"></i> Bayar Sekarang
+                                                </button>
+                                            <?php else: ?>
+                                                <a href="/hoodie_shop/checkout/payment.php?order_id=<?= $order['id'] ?>" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-credit-card"></i> Bayar
+                                                </a>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
@@ -90,5 +106,42 @@ $status_labels = [
         </div>
     <?php endif; ?>
 </div>
+
+<!-- Add Midtrans Snap JS -->
+<script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="SB-Mid-client-DID8kELBD3qNIhjN"></script>
+
+<script>
+    // Add event listeners to all payment buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        const payButtons = document.querySelectorAll('.pay-button');
+        
+        payButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const token = this.getAttribute('data-token');
+                const orderId = this.getAttribute('data-order-id');
+                
+                // Open Snap payment popup
+                snap.pay(token, {
+                    onSuccess: function(result) {
+                        // Handle success
+                        window.location.href = '/hoodie_shop/checkout/order_success.php?order_id=' + orderId;
+                    },
+                    onPending: function(result) {
+                        // Handle pending
+                        alert('Pembayaran dalam proses. Silakan selesaikan pembayaran Anda.');
+                    },
+                    onError: function(result) {
+                        // Handle error
+                        alert('Pembayaran gagal: ' + result.status_message);
+                    },
+                    onClose: function() {
+                        // Handle customer closing the popup without finishing payment
+                        alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+                    }
+                });
+            });
+        });
+    });
+</script>
 
 <?php include '../includes/footer.php'; ?>

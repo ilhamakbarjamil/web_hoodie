@@ -7,7 +7,6 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cart_id']) && isset($_POST['product_id']) && isset($_POST['quantity'])) {
     $user_id = $_SESSION['user_id'];
     $cart_id = $_POST['cart_id'];

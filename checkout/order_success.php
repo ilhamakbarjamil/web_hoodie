@@ -1,7 +1,6 @@
 <?php
 session_start();
 require_once '../includes/config.php';
-require '../vendor/autoload.php';
 
 // Cek login
 if(!isset($_SESSION['user_id'])) {
@@ -32,12 +31,6 @@ if(mysqli_num_rows($result) == 0) {
 
 $order = mysqli_fetch_assoc($result);
 
-// Cek apakah order sudah dibayar
-if($order['status'] != 'pending') {
-    header("Location: order_success.php?order_id=" . $order_id);
-    exit();
-}
-
 // Ambil items dari order
 $items_query = mysqli_prepare($conn, "SELECT * FROM order_items WHERE order_id = ?");
 mysqli_stmt_bind_param($items_query, "i", $order_id);
@@ -48,25 +41,20 @@ $items = [];
 while($item = mysqli_fetch_assoc($items_result)) {
     $items[] = $item;
 }
-
-// Cek apakah payment token sudah ada
-if(empty($order['payment_token'])) {
-    die("Token pembayaran tidak ditemukan");
-}
-
-$snapToken = $order['payment_token'];
 ?>
 
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Pembayaran Order #<?= $order_id ?></h4>
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Pesanan Berhasil Dibuat</h4>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-info">
-                        <p class="mb-0">Silahkan selesaikan pembayaran Anda melalui payment gateway.</p>
+                    <div class="text-center mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                        <h3 class="mt-3">Terima Kasih Atas Pesanan Anda!</h3>
+                        <p class="lead">Order #<?= $order_id ?> telah berhasil dibuat.</p>
                     </div>
                     
                     <div class="order-details mb-4">
@@ -78,11 +66,27 @@ $snapToken = $order['payment_token'];
                             </tr>
                             <tr>
                                 <th>Status</th>
-                                <td><span class="badge bg-warning">Menunggu Pembayaran</span></td>
+                                <td>
+                                    <?php if($order['status'] == 'pending'): ?>
+                                        <span class="badge bg-warning">Menunggu Pembayaran</span>
+                                    <?php elseif($order['status'] == 'paid'): ?>
+                                        <span class="badge bg-success">Sudah Dibayar</span>
+                                    <?php elseif($order['status'] == 'shipped'): ?>
+                                        <span class="badge bg-info">Dikirim</span>
+                                    <?php elseif($order['status'] == 'completed'): ?>
+                                        <span class="badge bg-primary">Selesai</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary"><?= ucfirst($order['status']) ?></span>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                             <tr>
                                 <th>Metode Pengiriman</th>
                                 <td><?= ucfirst($order['shipping_method']) ?></td>
+                            </tr>
+                            <tr>
+                                <th>Metode Pembayaran</th>
+                                <td><?= ucfirst($order['payment_method']) ?></td>
                             </tr>
                             <tr>
                                 <th>Alamat Pengiriman</th>
@@ -116,34 +120,12 @@ $snapToken = $order['payment_token'];
                     </div>
                     
                     <div class="text-center">
-                        <button id="pay-button" class="btn btn-primary btn-lg">Bayar Sekarang</button>
+                        <a href="/hoodie_shop/products/index.php" class="btn btn-primary">Lanjutkan Belanja</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Midtrans JS -->
-<script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="SB-Mid-client-YourClientKey"></script>
-<script>
-    document.getElementById('pay-button').onclick = function() {
-        // Trigger snap popup
-        snap.pay('<?= $snapToken ?>', {
-            onSuccess: function(result) {
-                window.location.href = 'payment_notification.php?order_id=<?= $order_id ?>&status=success';
-            },
-            onPending: function(result) {
-                window.location.href = 'payment_notification.php?order_id=<?= $order_id ?>&status=pending';
-            },
-            onError: function(result) {
-                window.location.href = 'payment_notification.php?order_id=<?= $order_id ?>&status=error';
-            },
-            onClose: function() {
-                alert('Anda menutup popup tanpa menyelesaikan pembayaran');
-            }
-        });
-    };
-</script>
 
 <?php include '../includes/footer.php'; ?>

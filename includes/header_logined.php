@@ -120,7 +120,7 @@ if (session_status() === PHP_SESSION_NONE) {
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item py-2" href="orders.php">
+                                <a class="dropdown-item py-2" href="/hoodie_shop/orders/history.php">
                                     <i class="fas fa-box me-2 text-primary"></i>My Orders
                                 </a>
                             </li>
